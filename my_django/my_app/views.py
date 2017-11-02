@@ -28,8 +28,8 @@ def contacts_list(request):
 							<td><a href = http://127.0.0.1:8000/show/{}> {} </a></td>
 							<td> {} </td>
 							<td> {} </td>
-							<td><button type='submit'> EDYTUJ </button></td>
-							<td><button type='submit'> USUŃ </button></td>
+							<td><button type='submit'> MODIFY </button></td>
+							<td><button type='submit'> DELETE </button></td>
 						</tr>""".format(person.id,person.name, person.surname, person.description)
 	html = html.format(list_of_contacts)
 	return HttpResponse(html)
@@ -43,13 +43,13 @@ def add_group(request):
 	return HttpResponse("Dodano wpisy")
 
 
-'''
+
 def add_group_person(request,my_id):
 	p = Person.objects.get(id = my_id)
-	g = Group.objects.get(id=1) # 1: friends
+	g = Group.objects.get(id=2) # 1:friends 2:family 3:colleagues
 	g.person.add(p)
 	return HttpResponse("Dodano wpisy")
-'''
+
 
 
 def show_contact(request, my_id):
@@ -139,15 +139,20 @@ def show_contact(request, my_id):
 						</fieldset>
 				</fieldset>
 			</form>
+			<form>
+				<fieldset>
+					<legend> <h4> Groups </h4> </legend>
+					
+				</fieldset>
+			</form>
 			<p> <a href = http://127.0.0.1:8000/> Modify </a> </p>
-			<p> <a href = http://127.0.0.1:8000/> Delete </a> </p>
+			<p> <a href = http://127.0.0.1:8000/delete/{}> Delete </a> </p>
 			""".format(persons.name, persons.surname, persons.name, persons.surname, persons.description,
 				email_private.email, email_business.email,
 				phone_home.phone_number, phone_mobile.phone_number, phone_business.phone_number,
 				add_perm.city, add_perm.street, add_perm.number, add_perm.local_num,
 				add_res.city, add_res.street, add_res.number, add_res.local_num,
-				add_cor.city, add_cor.street, add_cor.number, add_cor.local_num)
-
+				add_cor.city, add_cor.street, add_cor.number, add_cor.local_num, persons.id)
 
 	return HttpResponse(show_data)
 
@@ -175,25 +180,38 @@ def add_new_person(request):
 		name_from_form = request.POST.get("name")
 		surname_from_form = request.POST.get("surname")
 		description_from_form = request.POST.get("description")
+		if name_from_form == "":
+			empty_name = """<a href = http://127.0.0.1:8000/new> You should give a name </a>"""
+			return HttpResponse(empty_name)
 		new_person = Person.objects.create(name=name_from_form, surname=surname_from_form, description=description_from_form) 
-
 		return HttpResponse("New person added")
+		
 
-
-
+@csrf_exempt 
 def delete_contact(request, my_id):
 	persons = Person.objects.get(id = my_id)
-	contact_to_delete = """Czy na pewno chcesc usunąć kontakt?
-					<table>
-						<tr>
-							<td> {} </td>
-							<td> {} </td>
-							<td> {} </td>
-						</tr>
-					</table>
-					<button type='submit'> USUŃ </button>
-					<button type='submit'> ANULUJ </button>
-						""".format(persons.name, persons.surname, persons.description)
-	return HttpResponse(contact_to_delete)
+	if request.method == "GET":
+		contact_to_delete = """
+						<h3>Are you sure you want to delete contact?</h3>
+						<form method='POST'>
+						<table>	
+							<tr>
+								<td> {} </td>
+								<td> {} </td>
+								<td> {} </td>
+							</tr>
+						</table>
+						<br/>
+						<input type='submit' name='option' value='DELETE'>
+						<input type='submit' name='option' value='CANCEL'>
+							""".format(persons.name, persons.surname, persons.description, persons.id)
+		return HttpResponse(contact_to_delete)
 
-
+	if request.method == "POST":
+		option = request.POST.get('option')
+		
+		if option == "DELETE":
+			persons.delete()
+			return HttpResponse("<a href=http://127.0.0.1:8000> Contact deleted </a>")
+		return HttpResponse("<a href=http://127.0.0.1:8000> Return to contact list </a>")
+		

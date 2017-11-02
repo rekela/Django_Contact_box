@@ -17,7 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from my_app.views import contacts_list
 from my_app.views import add_group
-#from my_app.views import add_group_person
+from my_app.views import add_group_person
 from my_app.views import show_contact
 from my_app.views import add_new_person
 from my_app.views import delete_contact
@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', contacts_list),
     url(r'^add_group/', add_group),
-    #url(r'^add_group_person/(?P<my_id>(\d)+)$', add_group_person),
+    url(r'^add_group_person/(?P<my_id>(\d)+)$', add_group_person),
 	url(r'^show/(?P<my_id>(\d)+)$', show_contact),
     url(r'^new', add_new_person),
 	url(r'^delete/(?P<my_id>(\d)+)$', delete_contact),
