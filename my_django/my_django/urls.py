@@ -21,6 +21,7 @@ from my_app.views import add_group_person
 from my_app.views import show_contact
 from my_app.views import add_new_person
 from my_app.views import delete_contact
+from my_app.views import modify_contact
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -30,4 +31,5 @@ urlpatterns = [
 	url(r'^show/(?P<my_id>(\d)+)$', show_contact),
     url(r'^new', add_new_person),
 	url(r'^delete/(?P<my_id>(\d)+)$', delete_contact),
+    url(r'^modify/(?P<my_id>(\d)+)$', modify_contact),
 ]

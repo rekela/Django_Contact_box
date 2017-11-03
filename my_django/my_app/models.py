@@ -4,8 +4,8 @@ from django.db import models
 
 class Person(models.Model):
 	name = models.CharField(max_length=64)
-	surname = models.CharField(max_length=64)
-	description = models.TextField()
+	surname = models.CharField(max_length=64, null=True)
+	description = models.TextField(null=True)
 
 
 
@@ -15,11 +15,11 @@ class Address(models.Model):
 			(1, "of_residence"),
 			(2, "for_correspondence")
 			)
-	city = models.CharField(max_length=64)
-	street = models.CharField(max_length=64)
-	number = models.IntegerField()
-	local_num = models.IntegerField()
-	address_type = models.IntegerField(choices=ADDRESS_CHOICES)
+	city = models.CharField(max_length=64, null=True)
+	street = models.CharField(max_length=64, null=True)
+	number = models.IntegerField(null=True)
+	local_num = models.IntegerField(null=True)
+	address_type = models.IntegerField(choices=ADDRESS_CHOICES, default=0)
 	person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
 
@@ -30,8 +30,8 @@ class Phone(models.Model):
 			(1, "mobile"),
 			(2, "business")
 			)
-	phone_number = models.CharField(max_length=16)
-	phone_type = models.IntegerField(choices=PHONE_CHOICES)
+	phone_number = models.CharField(max_length=16, null=True)
+	phone_type = models.IntegerField(choices=PHONE_CHOICES, default=0)
 	person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
 
@@ -41,8 +41,8 @@ class Email(models.Model):
 			(0, "private"),
 			(1, "business")
 			)
-	email = models.EmailField()
-	email_type = models.IntegerField(choices=EMAIL_CHOICES)
+	email = models.EmailField(null=True)
+	email_type = models.IntegerField(choices=EMAIL_CHOICES, default=0)
 	person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
 
