@@ -16,20 +16,28 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from my_app.views import contacts_list
-from my_app.views import add_group
-from my_app.views import add_group_person
 from my_app.views import show_contact
 from my_app.views import add_new_person
 from my_app.views import delete_contact
 from my_app.views import modify_contact
+from my_app.views import groups_list
+from my_app.views import group_users
+from my_app.views import group_add_person
+from my_app.views import add_group
+from my_app.views import group_search
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', contacts_list),
-    url(r'^add_group/', add_group),
-    url(r'^add_group_person/(?P<my_id>(\d)+)$', add_group_person),
-	url(r'^show/(?P<my_id>(\d)+)$', show_contact),
+    url(r'^show/(?P<my_id>(\d)+)$', show_contact),
     url(r'^new', add_new_person),
-	url(r'^delete/(?P<my_id>(\d)+)$', delete_contact),
+    url(r'^delete/(?P<my_id>(\d)+)$', delete_contact),
     url(r'^modify/(?P<my_id>(\d)+)$', modify_contact),
+    url(r'^group-list/', groups_list),
+    url(r'^group/(?P<group_id>(\d)+)$', group_users),
+    url(r'^group/(?P<group_id>(\d)+)/add-person$', group_add_person),
+    url(r'^group-add/', add_group),
+    url(r'^group-search/', group_search),
 ]
+

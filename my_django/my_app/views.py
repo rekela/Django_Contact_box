@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from my_app.models import Person, Address, Phone, Email, Group
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
@@ -16,7 +16,7 @@ def contacts_list(request):
 				{}
 				</table>
 				<p> <a href = http://127.0.0.1:8000/new> Add new person </a> </p>
-				<p> <a href = http://127.0.0.1:8000/> List of groups </a> </p>
+				<p> <a href = http://127.0.0.1:8000/group-list> List of groups </a> </p>
 			</body>
 			</html>
 			"""
@@ -47,7 +47,7 @@ def show_contact(request, my_id):
 	
 	add_perm = Address.objects.get(person = persons, address_type=0)
 	add_res = Address.objects.get(person = persons, address_type=1)
-	add_cor = Address.objects.get(person = persons, address_type=2)
+	add_cor = Address.objects.get(person = persons, address_type=2)	
 
 	show_data = """
 				<h2>{} {}</h2>
@@ -192,7 +192,7 @@ def delete_contact(request, my_id):
 		if option == "DELETE":
 			persons.delete()
 			return HttpResponse("<a href=http://127.0.0.1:8000> Contact deleted </a>")
-		return HttpResponse("<a href=http://127.0.0.1:8000> Return to contact list </a>")
+		return HttpResponseRedirect("/")
 		
 
 
@@ -369,23 +369,147 @@ def modify_contact(request, my_id):
 				add_cor.local_num = local_num_c
 				add_cor.save()
 
-			return HttpResponse("<a href=http://127.0.0.1:8000> Modified </a>")
+			return HttpResponseRedirect("/")
 
-		return HttpResponse("<a href=http://127.0.0.1:8000> Return to contact list </a>")
+		return HttpResponseRedirect("/")
 
 
 
+def groups_list(request):
+	groups = Group.objects.all()
+	html = """
+				<h1> List of groups </h1>
+				<table>
+				{}
+				</table>
+				<br/>
+				<p> <a href = http://127.0.0.1:8000/group-add> Add new group </a> </p>
+				<p> <a href = http://127.0.0.1:8000/group-search> Group-search </a> </p>
+			"""
+	list_of_groups = ""
+	for group in groups:
+		list_of_groups += """
+						<tr>
+							<td> {} </td>
+							<td> {} </td>
+							<td> <a href = http://127.0.0.1:8000/group/{}><input type='submit' name='save' value='SHOW'> </a> </td>
+						</tr>""".format(group.name, group.description, group.id)
+	html = html.format(list_of_groups)
+	return HttpResponse(html)
+
+
+
+def group_users(request, group_id):
+	groups = Group.objects.get(id=group_id)
+
+	html = """
+				<h2> {} </h2>
+				<table>
+					{}
+				</table>
+				<br/>
+				<a href = http://127.0.0.1:8000/group/{}/add-person> Add person </a>
+			"""
+	group_person_list = "" 
+	for person in groups.person.all():
+		group_person_list += "{} {} <br/>".format(person.name, person.surname)
+
+	html = html.format(groups.name, group_person_list,groups.id)
+	return HttpResponse(html)
+
+
+
+@csrf_exempt
+def group_add_person(request, group_id):
+	groups = Group.objects.get(id=group_id)
+	persons = Person.objects.all()
+
+	if request.method == "GET":
+		html = """<h2> Add person to {} </h2>
+				<form method='POST'>
+					<select name="person_list">
+						{}
+					</select>
+				<a href = http://127.0.0.1:8000/group/{}> <input type='submit' name='add' value='ADD'> </a> 
+				</form>
+				"""
+
+		persons_list = ""
+		for person in persons:
+			persons_list += """<option name='option' value={}> {} {}</option>""".format(person.id, person.name, person.surname)
+
+		html = html.format(groups.name, persons_list, groups.id)
+
+		return HttpResponse(html)
+
+
+	if request.method == "POST":
+		option = request.POST.get("option")
+		person_list = request.POST.getlist(person_list)
+		p = Person.objects.get(id=option)
+		groups.person.add(p)
+		return HttpResponse("<a href=http://127.0.0.1:8000/group-list> Person added </a>")
+
+#return HttpResponse("Person already belong to that group")
+
+
+
+@csrf_exempt
 def add_group(request):
-	new_group = Group()
-	new_group = Group.objects.create(name="colleagues",description="colleagues from work")
+	if request.method == "GET":
+		html = """<h2> Add new group </h2>
+				<form method='POST'>
+					<fieldset>
+						Name: <input type="text" name="name">
+						Description: <input type="text" name="description">
+						<input type='submit' name='save' value='SAVE'>
+					</fieldset>
+				</form>
+				"""
+		return HttpResponse(html)
+
+	if request.method == "POST":
+		new_group = Group()
+		
+		name_from_form = request.POST.get("name")
+		description_from_form = request.POST.get("description")
+
+		if name_from_form == "" or description_from_form == "":
+			return HttpResponse("<a href=http://127.0.0.1:8000/group-add> You have to give a name and description </a>")
+
+		new_group = Group.objects.create(name=name_from_form,description=description_from_form)
+		return HttpResponse("<a href=http://127.0.0.1:8000> Group added </a>")
+
+
+
+@csrf_exempt
+def group_search(request):
+    if request.method == "GET":
+    	html = """
+            <form method = 'POST'>
+                Name: <input type='text' name='name'/>
+                <input type='submit' name='search' value='SEARCH NAME'/>
+                Surname <input type='text' name='surname'/>
+                <input type='submit' name='search' value='SEARCH SURNAME'/>
+              </form>
+            """
+    	return HttpResponse(html)
+'''
+    if request.method == "POST":
+	    name_search = request.POST.get("name")
+	    surname_search = request.POST.get("surname")
+	    option = request.POST.get("search")
+
+	    if name_search is not None and option == "SEARCH NAME":
+	    	p = Person.objects.get(name=name_search)
+	    	p.group_set.all()
+	    	return HttpResponse(p.name, p.surname)
 	
-	return HttpResponse("Dodano wpisy")
+	   
 
+	    if surname_search is not None and option == "SEARCH SURNAME":
+	      	p = Person.objects.get(name=name_search)
+	    	p.group_set.all()
 
-
-def add_group_person(request,my_id):
-	p = Person.objects.get(id = my_id)
-	g = Group.objects.get(id=2) # 1:friends 2:family 3:colleagues
-	g.person.add(p)
-	return HttpResponse("Dodano wpisy")
-
+	    #return HttpResponse("You should give a name or surname")
+'''
